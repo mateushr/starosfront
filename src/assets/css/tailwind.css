@@ -1,0 +1,8 @@
+@import "tailwindcss" prefix(tw);
+
+@custom-variant dark (&:where(.body--dark, .body--dark *));
+@custom-variant light (&:where(.body--light, .body--light *));
+
+@theme {
+  --font-system-ui: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Open Sans", "Helvetica Neue", sans-serif;
+}
