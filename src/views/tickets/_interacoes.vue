@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch, computed } from "vue";
 import { Loading, Notify } from "quasar";
 import { api } from "@/boot/axios";
 import { useTicketStore } from "@/stores/ticket";
@@ -101,12 +101,7 @@ import moment from "moment";
 
 const TicketStore = useTicketStore();
 
-const props = defineProps({
-  ticket_id: {
-    type: Number,
-    default: () => 0
-  }
-});
+const ticketId = computed(() => TicketStore?.getTicketSelecionado?.id || null);
 
 const formRef = ref(null);
 const interacoes = ref([]);
@@ -122,9 +117,21 @@ onMounted(async () => {
   await BuscaStatusTickets();
 });
 
+watch(
+  () => ticketId.value,
+  async (id) => {
+    if (!id) {
+      interacoes.value = [];
+      return;
+    }
+    await BuscaInteracoes();
+  }
+);
+
 async function BuscaInteracoes() {
   try {
-    const response = await api.get(`/tickets/${props.ticket_id}/interacoes`);
+    if (!ticketId.value) return;
+    const response = await api.get(`/tickets/${ticketId.value}/interacoes`);
     interacoes.value = response.data;
   } catch (error) {
     console.log(error);
@@ -168,7 +175,7 @@ async function AdicionarInteracao() {
 
     Loading.show({ message: "Adicionando interação..." });
 
-    await api.post(`/tickets/${props.ticket_id}/interacoes`, form.value);
+    await api.post(`/tickets/${ticketId.value}/interacoes`, form.value);
 
     await BuscaInteracoes();
 
@@ -201,7 +208,7 @@ async function AdicionarInteracao() {
 
 async function AtualizaTicket() {
   try {
-    const response = await api.get(`/tickets/${props.ticket_id}`);
+    const response = await api.get(`/tickets/${ticketId.value}`);
     TicketStore.setTicketSelecionado(response.data);
   } catch (error) {
     console.log(error);

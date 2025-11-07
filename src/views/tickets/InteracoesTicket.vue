@@ -21,7 +21,7 @@
         <div class="tw:w-full tw:md:w-[60%] tw:flex tw:flex-col tw:gap-4">
           <descricaoTicket :ticket="TicketStore?.getTicketSelecionado" />
 
-          <interacoesTicket :ticket_id="TicketStore?.getTicketSelecionado?.id" />
+          <interacoesTicket />
         </div>
 
         <div class="tw:w-full tw:md:w-[40%]">
@@ -33,8 +33,8 @@
 </template>
 
 <script setup>
-import { onMounted } from "vue";
-import { useRouter } from "vue-router";
+import { onMounted, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 import { Loading, Notify } from "quasar";
 import { api } from "@/boot/axios";
 import { useTicketStore } from "@/stores/ticket";
@@ -44,18 +44,29 @@ import interacoesTicket from "@/views/tickets/_interacoes.vue";
 import { Icon } from "@iconify/vue";
 
 const router = useRouter();
+const route = useRoute();
 const TicketStore = useTicketStore();
 
 onMounted(async () => {
   Loading.show({
     message: "Carregando dados do ticket..."
   });
-  const ticketId = router.currentRoute.value.params.id;
+  const ticketId = route.params.id;
 
   await BuscaDadosDoTicket(ticketId);
 
   Loading.hide();
 });
+
+watch(
+  () => route.params.id,
+  async (newId) => {
+    if (!newId) return;
+    Loading.show({ message: "Carregando dados do ticket..." });
+    await BuscaDadosDoTicket(newId);
+    Loading.hide();
+  }
+);
 
 async function BuscaDadosDoTicket(ticket_id) {
   try {
